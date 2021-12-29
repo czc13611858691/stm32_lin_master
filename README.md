@@ -1,1 +1,6 @@
 # stm32_lin_master
+
+STM32F405RGT6X
+
+USART TX PA9
+USART RX PA10
