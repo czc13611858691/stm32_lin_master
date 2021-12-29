@@ -60,10 +60,45 @@ static void MX_USART1_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #include "soft_timer.h"
+#include "stm32f4xx_ll_usart.h"
 
 void test_func(void)
 {
- ;
+  uint8_t data_buf[10] = {
+      0x01,
+      0x03,
+      0x89,
+      0x1b,
+      0x00,
+      0x01,
+      0xde,
+      0x51,
+      0x00,
+      0x00,
+  };
+  static uint32_t i = 0;
+  if (i < 50)
+  {
+    LL_USART_RequestBreakSending(USART1);
+    LL_USART_TransmitData8(USART1, 0x55);
+    while (LL_USART_IsActiveFlag_TXE(USART1) == 0)
+      ;
+    LL_USART_TransmitData8(USART1, 0x61);
+    while (LL_USART_IsActiveFlag_TXE(USART1) == 0)
+      ;
+  }
+  else if (i > 80)
+  {
+    for (uint8_t j = 0; j < 10; j++)
+    {
+      LL_USART_TransmitData8(USART1, data_buf[j]);
+      while (LL_USART_IsActiveFlag_TXE(USART1) == 0)
+        ;
+      while(data_buf[j]!=LL_USART_ReceiveData8(USART1));
+    }
+  }
+
+  i = (i + 1) % 200;
 }
 /* USER CODE END 0 */
 
@@ -98,7 +133,8 @@ int main(void)
   MX_TIM4_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  soft_timer_create(1000, test_func);
+  soft_timer_create(10, test_func);
+
   HAL_TIM_Base_Start_IT(&htim4);
   /* USER CODE END 2 */
 
